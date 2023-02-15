@@ -22,7 +22,7 @@ export class UserService {
         })
     }
 
-    async add(user: User) {
+    async add(user: User):Promise<User> {
         try {
             const exists = await this.userRepo.userExists(user.email, user.mobileNo);
             if (exists) throw new BadRequestException('user already exists with same email/mobileNo combination');
@@ -31,9 +31,10 @@ export class UserService {
             const hash = (await scrypt(user.password, salt, 32)) as Buffer
             const result = salt + '.' + hash.toString('hex');
             user.password = result;
-            await this.userRepo.createUser(user);
-            return "user created successfully"
+            
 
+            return await this.userRepo.createUser(user);
+            
         } catch (error) {
             throw new HttpException({ reason: error }, HttpStatus.SERVICE_UNAVAILABLE);
         }
