@@ -11,10 +11,11 @@ export class UserRepo{
     
     }
 
-   async createUser(user:User){
+   async createUser(user:User):Promise<any>{
     return new Promise(async (resolve,reject)=>{
-        const insertQueryRes = await this.neo.write(`CREATE (u:User {firstName: "${user.firstName}", lastName: "${user.lastName}", email:"${user.email}", mobileNo:"${user.mobileNo}", password:"${user.password}", createdBy:"${user.createdBy}", createdOn:"${user.createdOn}", userType:"${user.userType}", enabled:"${user.enabled}", isActive:"${user.isActive}" }) return u`);
-        insertQueryRes.records.length>0?resolve(true):resolve(false);
+        const insertQueryRes = await this.neo.write(`CREATE (u:User {userId:apoc.create.uuid(), firstName: "${user.firstName}", lastName: "${user.lastName}", email:"${user.email}", mobileNo:"${user.mobileNo}", password:"${user.password}", createdOn:"${user.createdOn}", userType:"${user.userType}", enabled:"${user.enabled}" }) return u`);
+        console.log(`cretaeusre()`,insertQueryRes.records)
+        insertQueryRes.records.length>0?resolve(insertQueryRes.records.map((r)=>r.get('u').properties )):resolve(false);
     })
     }
 
@@ -23,7 +24,7 @@ export class UserRepo{
     return queryres.records.length>0?true:false;
  }
 
- async fetchUser(mobileNo:string,email:string):Promise<User>{
+ async fetchUser(mobileNo?:string,email?:string):Promise<User>{
     let queryres;
     if(mobileNo && mobileNo.length>0){
         queryres = await this.neo.read(`MATCH (u:User) WHERE u.mobileNo=$mobileNo return u as user`, { mobileNo: mobileNo });
@@ -40,7 +41,7 @@ export class UserRepo{
         queryres.records.map((row)=>{
             //console.log(row);
             user=row.get('user')["properties"];
-            console.log('properties',user);
+          
          })  
         return user;
     }else{
